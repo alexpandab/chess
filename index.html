@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			html, body, div, span, applet, object, iframe,
+			h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+			a, abbr, acronym, address, big, cite, code,
+			del, dfn, em, img, ins, kbd, q, s, samp,
+			small, strike, strong, sub, sup, tt, var,
+			b, u, i, center,
+			dl, dt, dd, ol, ul, li,
+			fieldset, form, label, legend,
+			table, caption, tbody, tfoot, thead, tr, th, td,
+			article, aside, canvas, details, embed, 
+			figure, figcaption, footer, header, hgroup, 
+			menu, nav, output, ruby, section, summary,
+			time, mark, audio, video {
+				margin: 0;
+				padding: 0;
+				border: 0;
+				font-size: 100%;
+				font: inherit;
+				vertical-align: baseline;
+			}
+			/* HTML5 display-role reset for older browsers */
+			article, aside, details, figcaption, figure, 
+			footer, header, hgroup, menu, nav, section {
+				display: block;
+			}
+			body {
+				line-height: 1;
+			}
+			ol, ul {
+				list-style: none;
+			}
+			blockquote, q {
+				quotes: none;
+			}
+			blockquote:before, blockquote:after,
+			q:before, q:after {
+				content: '';
+				content: none;
+			}
+			table {
+				border-collapse: collapse;
+				border-spacing: 0;
+			}
+			#chess {
+				margin-left: calc(50% - 402px);
+			}
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	</head>
+	<body>
+		<canvas id="chess" width="800" height="900" style="border: 2px solid black" onLoad="theLoadFunction()">
+			<script>
+				//Initialize Variable
+
+				var c = document.getElementById("chess");
+				var ctx = c.getContext("2d");
+				var spriteMap = new Image;
+				spriteMap.src = 'chess_pieces.PNG';
+				var x = 0;
+				var y = 50;
+				var tileArray = new Array(8);
+				function Piece(typ, plyr) {
+					this.type = typ;
+					this.player = plyr;
+				}
+				function Tile(tcx, tcy, occ) {
+					this.tileCoordX = tcx;
+					this.tileCoordY = tcy;
+					this.occupy = occ;
+				}
+				var xPosition = 0;
+				var yPosition = 0;
+				var selectedTile = 0;
+
+				//Draw the Board
+
+				function drawBoard(){
+					ctx.fillStyle = "#228B22";
+					ctx.fillRect(0, 0, 800, 50);
+					ctx.fillRect(0, 850, 800, 50);
+					ctx.fillStyle = "#aaa";
+
+					for(y;y<850;y=y+100){
+						if((y - 50) / 100 % 2 == 1){
+							x = 100;
+						}else {
+							x = 0;
+						}
+						for(x;x<820;x = x + 200){
+							ctx.fillRect(x, y, 100, 100);
+						}				
+					}
+				}
+
+				function createBoard() {
+					for(a=0;a<8;a++){
+						tileArray[a] = new Array(8);
+					}
+					console.log(tileArray);
+
+					for(ta1=0;ta1<8;ta1++){
+						for(ta2=0;ta2<8;ta2++){
+							if(ta1 % 2 == 0){
+								if(ta2 % 2 == 0){
+									tileArray[ta1][ta2] = new Tile(ta2, ta1, "");
+								}
+								else {
+									tileArray[ta1][ta2] = new Tile(ta2, ta1, "");
+								}
+							}
+							else {
+								if(ta2 % 2 == 1){
+									tileArray[ta1][ta2] = new Tile(ta2, ta1, "");
+								}
+								else {
+									tileArray[ta1][ta2] = new Tile(ta2, ta1, "");
+								}
+							}
+							console.log(tileArray[ta1][ta2]);
+						}
+					}
+				}
+
+				function initializePieces() {
+					for(ip1=0;ip1<8;ip1++){
+						tileArray[1][ip1].occupy = new Piece("Pawn", 1);
+						tileArray[6][ip1].occupy = new Piece("Pawn", 2);
+					}
+					tileArray[0][0].occupy = new Piece("Rook", 1);
+					tileArray[0][1].occupy = new Piece("Knight", 1);
+					tileArray[0][2].occupy = new Piece("Bishop", 1);
+					tileArray[0][3].occupy = new Piece("Queen", 1);
+					tileArray[0][4].occupy = new Piece("King", 1);
+					tileArray[0][5].occupy = new Piece("Bishop", 1);
+					tileArray[0][6].occupy = new Piece("Knight", 1);
+					tileArray[0][7].occupy = new Piece("Rook", 1);
+					tileArray[7][0].occupy = new Piece("Rook", 2);
+					tileArray[7][1].occupy = new Piece("Knight", 2);
+					tileArray[7][2].occupy = new Piece("Bishop", 2);
+					tileArray[7][3].occupy = new Piece("Queen", 2);
+					tileArray[7][4].occupy = new Piece("King", 2);
+					tileArray[7][5].occupy = new Piece("Bishop", 2);
+					tileArray[7][6].occupy = new Piece("Knight", 2);
+					tileArray[7][7].occupy = new Piece("Rook", 2);
+				}
+
+				function drawPieces() {
+					for(dp1=0;dp1<8;dp1++){
+						for(dp2=0;dp2<8;dp2++){
+							switch(tileArray[dp1][dp2].occupy.type){
+								case("King"):
+									ctx.drawImage(spriteMap, 0, 333.33 * (tileArray[dp1][dp2].occupy.player - 1), 2000/6, 333.33, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100, 100);
+								break;
+								case("Queen"):
+									ctx.drawImage(spriteMap, 2000/6, 333.33 * (tileArray[dp1][dp2].occupy.player - 1), 2000/6, 333.33, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100, 100);
+								break;
+								case("Bishop"):
+									ctx.drawImage(spriteMap, 2000/3, 333.33 * (tileArray[dp1][dp2].occupy.player - 1), 2000/6, 333.33, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100, 100);
+								break;
+								case("Knight"):
+									ctx.drawImage(spriteMap, 1000, 333.33 * (tileArray[dp1][dp2].occupy.player - 1), 2000/6, 333.33, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100, 100);
+								break;
+								case("Rook"):
+									ctx.drawImage(spriteMap, 4000/3, 333.33 * (tileArray[dp1][dp2].occupy.player - 1), 2000/6, 333.33, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100, 100);
+								break;
+								case("Pawn"):
+									ctx.drawImage(spriteMap, 5000/3, 333.33 * (tileArray[dp1][dp2].occupy.player - 1), 2000/6, 333.33, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100, 100);
+								break;
+							}
+						}
+					}
+				}
+
+				spriteMap.onload = function(){
+					drawBoard();
+					createBoard();
+					initializePieces();
+					drawPieces();
+				}
+
+				c.addEventListener("click", getClickPosition, false);
+
+				function selectTile(){
+					drawBoard();
+					drawPieces();
+    				ctx.strokeStyle = "#0cf";
+    				ctx.strokeRect(selectedTile.tileCoordX * 100, selectedTile.tileCoordY * 100 + 50, 100, 100);
+				}
+				function getClickPosition(e) {
+  					var xPosition = e.offsetX;
+    				var yPosition = e.offsetY;
+    				console.log(xPosition, yPosition, Math.floor(xPosition / 100));
+    				selectedTile = tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)];
+    				console.log(selectedTile);
+    				selectTile();
+				}
+/*
+				var animFrame = window.requestAnimationFrame
+	    			|| window.mozRequestAnimationFrame
+	    			|| window.webkitRequestAnimationFrame
+	    			|| window.msRequestAnimationFrame;
+
+				setInterval(game, animFrame);
+
+				function game() {
+					update();
+					draw();
+				}
+
+				function update() {
+					
+				}
+
+				function draw() {
+
+				}
+*/
+			</script>
+		</canvas>
+	</body>
+</html>
