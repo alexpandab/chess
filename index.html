@@ -75,11 +75,19 @@
 				}
 				var xPosition = 0;
 				var yPosition = 0;
-				var selectedTile = 0;
+				var selectedTile = "";
 				var dead = new Array(2);
 				var moveLocation = "";
 				dead[0] = 0;
 				dead[1] = 0;
+
+				//When a piece is in the way, can't move past it; array of 8 for 8 directions (north, northeast, east, southeast, south, southwest, west, northwest), secondary directions have two directions
+
+				var blockMove = new Array(8);
+				blockMove[1] = new Array(2);
+				blockMove[3] = new Array(2);
+				blockMove[5] = new Array(2);
+				blockMove[7] = new Array(2);
 
 				//Draw the Board
 
@@ -165,9 +173,12 @@
 				function drawPieces() {
 					for(dp1=0;dp1<8;dp1++){
 						for(dp2=0;dp2<8;dp2++){
-							drawSprite(tileArray[dp1][dp2].occupy.type, tileArray[dp1][dp2].occupy.player, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100);
+							if(tileArray[dp1][dp2].occupy !== ""){
+								drawSprite(tileArray[dp1][dp2].occupy.type, tileArray[dp1][dp2].occupy.player, tileArray[dp1][dp2].tileCoordX * 100, tileArray[dp1][dp2].tileCoordY * 100 + 50, 100);
+							}
 						}
 					}
+					console.log("Drew pieces!");
 				}
 
 				//Event Listener for click
@@ -179,18 +190,20 @@
     				yPosition = e.offsetY;
     				console.log(xPosition, yPosition, Math.floor(xPosition / 100));
 
-    				//To move piece
-    				if(selectedTile !== "") {
-    					moveLocation = tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)];
-    					movePiece();
-    				}
+    				//Select tile, can switch the selected tile by clicking on another piece of same player
 
-    				//To select tile by clicking
-    				if(tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)].occupy !== ""){
+    				if(tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)].occupy !== "" && (selectedTile == "" || selectedTile.occupy.player == tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)].occupy.player)){
 	    				selectedTile = tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)];
 	    				updateBoard();
 						showPieceMove();
     				}
+
+    				//To move piece
+    				if(selectedTile !== tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)] && selectedTile !== "") {
+    					moveLocation = tileArray[Math.floor((yPosition - 50) / 100)][Math.floor(xPosition / 100)];
+    					movePiece();
+    				}
+    				console.log(selectedTile, moveLocation);
 				}
 
 				function updateBoard() {
@@ -209,38 +222,8 @@
 					for(mpy=0;mpy<8;mpy++){
 						for(mpx=0;mpx<8;mpx++){
 							ctx.beginPath();
-							switch(selectedTile.occupy.type){
-								case("King"):
-									if((((tileArray[mpy][mpx].tileCoordX + 1 == selectedTile.tileCoordX || tileArray[mpy][mpx].tileCoordX - 1 == selectedTile.tileCoordX) && (tileArray[mpy][mpx].tileCoordY + 1 == selectedTile.tileCoordY || tileArray[mpy][mpx].tileCoordY - 1 == selectedTile.tileCoordY)) || ((tileArray[mpy][mpx].tileCoordX == selectedTile.tileCoordX + 1 || tileArray[mpy][mpx].tileCoordX == selectedTile.tileCoordX - 1) && tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordY) || ((tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordY + 1 || tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordY - 1) && tileArray[mpy][mpx].tileCoordX == selectedTile.tileCoordX)) && selectedTile.occupy.player !== tileArray[mpy][mpx].occupy.player){
-										ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
-									}
-								break;
-								case("Queen"):
-									if((tileArray[mpy][mpx].tileCoordX == selectedTile.tileCoordX || tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordY || tileArray[mpy][mpx].tileCoordX + tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordX + selectedTile.tileCoordY || tileArray[mpy][mpx].tileCoordX - tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordX - selectedTile.tileCoordY) && selectedTile.occupy.player !== tileArray[mpy][mpx].occupy.player){
-										ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
-									}
-								break;
-								case("Bishop"):
-									if((tileArray[mpy][mpx].tileCoordX + tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordX + selectedTile.tileCoordY || tileArray[mpy][mpx].tileCoordX - tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordX - selectedTile.tileCoordY) && tileArray[mpy][mpx] !== selectedTile && tileArray[mpy][mpx].occupy.player !== selectedTile.occupy.player){
-										ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
-									}
-								break;
-								case("Knight"):
-									if(((selectedTile.tileCoordX == tileArray[mpy][mpx].tileCoordX + 2 || selectedTile.tileCoordX == tileArray[mpy][mpx].tileCoordX - 2) && (selectedTile.tileCoordY - 2 * (selectedTile.occupy.player - 1) + 1 == tileArray[mpy][mpx].tileCoordY)) || ((selectedTile.tileCoordX == tileArray[mpy][mpx].tileCoordX + 1 || selectedTile.tileCoordX == tileArray[mpy][mpx].tileCoordX - 1) && (selectedTile.tileCoordY + 2 == tileArray[mpy][mpx].tileCoordY || selectedTile.tileCoordY - 2 == tileArray[mpy][mpx].tileCoordY)) && tileArray[mpy][mpx].occupy.player !== selectedTile.occupy.player){
-										ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
-									}
-
-								break;
-								case("Rook"):
-									if((tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordY || tileArray[mpy][mpx].tileCoordX == selectedTile.tileCoordX) && tileArray[mpy][mpx].occupy.player !== selectedTile.occupy.player){
-										ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
-									}
-								break;
-								case("Pawn"):
-									if(tileArray[mpy][mpx].tileCoordY == selectedTile.tileCoordY - 2 * (selectedTile.occupy.player - 1) + 1 && tileArray[mpy][mpx].tileCoordX == selectedTile.tileCoordX && tileArray[mpy][mpx].occupy.player !== selectedTile.occupy.player){
-										ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
-									}
-								break;
+							if(checkMove(mpx, mpy) == true){
+								ctx.arc(tileArray[mpy][mpx].tileCoordX * 100 + 50,tileArray[mpy][mpx].tileCoordY * 100 + 100,35,0,2*Math.PI);
 							}
 							ctx.stroke();
 							ctx.closePath();
@@ -271,6 +254,41 @@
 					}
 				}
 
+				//Returns boolean for conditions to move met
+
+				function checkMove(checkX, checkY){
+					if(tileArray[checkY][checkX]){}
+					switch(selectedTile.occupy.type){
+						case("King"):
+							return (((tileArray[checkY][checkX].tileCoordX + 1 == selectedTile.tileCoordX || tileArray[checkY][checkX].tileCoordX - 1 == selectedTile.tileCoordX) && (tileArray[checkY][checkX].tileCoordY + 1 == selectedTile.tileCoordY || tileArray[checkY][checkX].tileCoordY - 1 == selectedTile.tileCoordY)) || ((tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX + 1 || tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX - 1) && tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY) || ((tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY + 1 || tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY - 1) && tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX)) && selectedTile.occupy.player !== tileArray[checkY][checkX].occupy.player;
+						break;
+						case("Queen"):
+							return (tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX || tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY || tileArray[checkY][checkX].tileCoordX + tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordX + selectedTile.tileCoordY || tileArray[checkY][checkX].tileCoordX - tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordX - selectedTile.tileCoordY) && selectedTile.occupy.player !== tileArray[checkY][checkX].occupy.player;
+						break;
+						case("Bishop"):
+							return (tileArray[checkY][checkX].tileCoordX + tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordX + selectedTile.tileCoordY || tileArray[checkY][checkX].tileCoordX - tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordX - selectedTile.tileCoordY) && tileArray[checkY][checkX] !== selectedTile && tileArray[checkY][checkX].occupy.player !== selectedTile.occupy.player;
+						break;
+						case("Knight"):
+							return (((selectedTile.tileCoordX == tileArray[checkY][checkX].tileCoordX + 2 || selectedTile.tileCoordX == tileArray[checkY][checkX].tileCoordX - 2) && (selectedTile.tileCoordY - 1 == tileArray[checkY][checkX].tileCoordY || selectedTile.tileCoordY + 1 == tileArray[checkY][checkX].tileCoordY)) || ((selectedTile.tileCoordX == tileArray[checkY][checkX].tileCoordX + 1 || selectedTile.tileCoordX == tileArray[checkY][checkX].tileCoordX - 1) && (selectedTile.tileCoordY + 2 == tileArray[checkY][checkX].tileCoordY || selectedTile.tileCoordY - 2 == tileArray[checkY][checkX].tileCoordY))) && tileArray[checkY][checkX].occupy.player !== selectedTile.occupy.player;
+						break;
+						case("Rook"):
+							return (tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY || tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX) && tileArray[checkY][checkX].occupy.player !== selectedTile.occupy.player;
+						break;
+						case("Pawn"):
+							//First move, two steps forward
+							if(selectedTile.tileCoordY == 5 * (selectedTile.occupy.player - 1) + 1 && tileArray[checkY][checkX].occupy == ""){
+								return (tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY - 4 * (selectedTile.occupy.player - 1) + 2 && tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX && tileArray[checkY][checkX].occupy.player !== "") || (tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY - 2 * (selectedTile.occupy.player - 1) + 1 && tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX && tileArray[checkY][checkX].occupy.player !== selectedTile.occupy.player);
+							}
+							//Take piece diagonal
+							if((selectedTile.tileCoordX == tileArray[checkY][checkX].tileCoordX + 1 || selectedTile.tileCoordX == tileArray[checkY][checkX].tileCoordX - 1)&&(tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY - 2 * (selectedTile.occupy.player - 1) + 1)){
+								return tileArray[checkY][checkX].occupy !== "" && tileArray[checkY][checkX].occupy.player !== selectedTile.occupy.player;
+							}
+							//Normal one step
+							return tileArray[checkY][checkX].tileCoordY == selectedTile.tileCoordY - 2 * (selectedTile.occupy.player - 1) + 1 && tileArray[checkY][checkX].tileCoordX == selectedTile.tileCoordX && tileArray[checkY][checkX].occupy == "";
+						break;
+					}
+				}
+
 				//Deletes a piece
 
 				function deletePiece(deleteTile){
@@ -285,11 +303,20 @@
 					console.log(dead);
 				}
 
+				//Moves a piece
+
 				function movePiece(){
 					console.log(selectedTile.occupy, moveLocation.occupy);
-					//moveLocation.occupy = selectedTile.occupy;
-					//selectedTile.occupy = "";
-					//updateBoard();
+					if(checkMove(moveLocation.tileCoordX, moveLocation.tileCoordY) == true){
+						if(moveLocation.occupy.player !== selectedTile.occupy.player){
+							deletePiece(moveLocation);
+						}
+						moveLocation.occupy = selectedTile.occupy;
+						selectedTile.occupy = "";
+						selectedTile = "";
+						updateBoard();
+					}
+					moveLocation = "";
 				}
 
 				//Starts the game
@@ -300,27 +327,6 @@
 					initializePieces();
 					drawPieces();
 				}
-/*
-				var animFrame = window.requestAnimationFrame
-	    			|| window.mozRequestAnimationFrame
-	    			|| window.webkitRequestAnimationFrame
-	    			|| window.msRequestAnimationFrame;
-
-				setInterval(game, animFrame);
-
-				function game() {
-					update();
-					draw();
-				}
-
-				function update() {
-					
-				}
-
-				function draw() {
-
-				}
-*/
 			</script>
 		</canvas>
 	</body>
